@@ -74,9 +74,9 @@ public class Controller {
             for (int i = 0; i < AudioThread.BUFFER_SIZE; i++) {
                 double mixedSample = 0;
 
-                mixedSample += generateWaveSample(txt1, oscillatorFrequencies[0], wavePos) / NORMALIZER;
-                mixedSample += generateWaveSample(txt2, oscillatorFrequencies[1], wavePos) / NORMALIZER;
-                mixedSample += generateWaveSample(txt3, oscillatorFrequencies[2], wavePos) / NORMALIZER;
+                mixedSample += (generateWaveSample(txt1, oscillatorFrequencies[0], wavePos) * volume1.getValue()) / NORMALIZER;
+                mixedSample += (generateWaveSample(txt2, oscillatorFrequencies[1], wavePos) * volume2.getValue()) / NORMALIZER;
+                mixedSample += (generateWaveSample(txt3, oscillatorFrequencies[2], wavePos) * volume3.getValue()) / NORMALIZER;
 
                 s[i] = (short) (Short.MAX_VALUE * mixedSample);
                 wavePos++;
@@ -103,7 +103,7 @@ public class Controller {
             case "Triangle":
                 return 2d * Math.abs(2d * (tDivP - Math.floor(0.5 + tDivP))) - 1;
             case "Noise":
-                return random.nextDouble();
+                return random.nextDouble() * 2 - 1;
             default:
                 throw new RuntimeException("Oscillator is set to unknown waveform");
         }
@@ -120,7 +120,7 @@ public class Controller {
             if (!auTh.isRunning()) {
                 char key = event.getText().isEmpty() ? '\0' : event.getText().charAt(0);
                 if (KEY_FREQUENCIES.containsKey(key)) {
-                    double frequency = KEY_FREQUENCIES.get(key); // get frequency from the map
+                    double frequency = KEY_FREQUENCIES.get(key);
 
                     oscillatorFrequencies[0] = Utility.Math.offsetTone(frequency, tone1.getValue());
                     oscillatorFrequencies[1] = Utility.Math.offsetTone(frequency, tone2.getValue());
@@ -144,7 +144,6 @@ public class Controller {
         slider.valueProperty().addListener((obs, oldValue, newValue) -> {
             System.out.println("Slider " + index + " moved to: " + newValue.doubleValue());
 
-            // Update the oscillator frequencies immediately
             if (isToneSlider && tempScene != null) {
                 tempScene.setOnKeyPressed(event -> {
                     char key = event.getText().isEmpty() ? '\0' : event.getText().charAt(0);
@@ -152,9 +151,6 @@ public class Controller {
                         double frequency = KEY_FREQUENCIES.get(key);
                         oscillatorFrequencies[index] = Utility.Math.offsetTone(frequency, newValue.doubleValue());
                     }
-//                    else {
-//                        //todo audio increase here
-//                    }
 
                     if (!auTh.isRunning()) {
                         shouldGenerate = true;
@@ -179,15 +175,17 @@ public class Controller {
     }
 
     private void sliderSetUp(Slider slider, int border) {
-        slider.setMin(-border);
         slider.setMax(border);
-        slider.setShowTickMarks(true);
-        slider.setShowTickLabels(true);
         if (border == 1) {
             slider.setValue(1);
+            slider.setMin(0);
         } else {
             slider.setValue(0);
+            slider.setMin(-border);
         }
+        slider.setShowTickMarks(true);
+        slider.setShowTickLabels(true);
+
     }
 
     private void setupMenu(MenuButton menuButton) {
