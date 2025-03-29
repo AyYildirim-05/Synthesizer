@@ -4,6 +4,7 @@ import com.example.demo2.utils.Utility;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Slider;
@@ -36,9 +37,6 @@ public class Controller {
     private boolean shouldGenerate;
     private int wavePos;
     private final int NORMALIZER = 6;
-
-    private int wavetableStepSize;
-    private int wavetableIndex;
 
 
     @FXML
@@ -81,6 +79,7 @@ public class Controller {
                 s[i] = (short) (Short.MAX_VALUE * mixedSample);
                 wavePos++;
             }
+            drawWaveform(s);
             return s;
         });
         this.auTh = audioThread;
@@ -225,5 +224,27 @@ public class Controller {
         System.out.println("temp sta:" + tempStage);
         closeApplication();
     }
+
+    private void drawWaveform(short[] audioBuffer) {
+        GraphicsContext gc = waveformCanvas.getGraphicsContext2D();
+        gc.clearRect(0, 0, waveformCanvas.getWidth(), waveformCanvas.getHeight()); // Clear previous waveform
+
+        gc.setStroke(javafx.scene.paint.Color.BLACK);  // Set the color for the waveform
+        gc.setLineWidth(1);  // Set the line width for the waveform drawing
+
+        double centerY = waveformCanvas.getHeight() / 2;
+        double scale = waveformCanvas.getHeight() / 2.0;  // Scale to fit the canvas height
+
+        // Loop through the audio buffer and plot the waveform
+        for (int i = 0; i < audioBuffer.length - 1; i++) {
+            double x1 = i * (waveformCanvas.getWidth() / (double) audioBuffer.length);
+            double y1 = centerY - (audioBuffer[i] / (double) Short.MAX_VALUE) * scale;
+            double x2 = (i + 1) * (waveformCanvas.getWidth() / (double) audioBuffer.length);
+            double y2 = centerY - (audioBuffer[i + 1] / (double) Short.MAX_VALUE) * scale;
+
+            gc.strokeLine(x1, y1, x2, y2);  // Draw the line between the points
+        }
+    }
+
 }
 
