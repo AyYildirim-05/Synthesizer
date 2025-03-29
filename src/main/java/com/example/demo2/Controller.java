@@ -145,13 +145,16 @@ public class Controller {
                     char key = event.getText().isEmpty() ? '\0' : event.getText().charAt(0);
                     if (KEY_FREQUENCIES.containsKey(key)) {
                         double frequency = KEY_FREQUENCIES.get(key);
-                        System.out.println("new" + frequency);
                         oscillatorFrequencies[index] = Utility.Math.offsetTone(frequency, newValue.doubleValue());
-                        System.out.println("the new frequency is being called");
                     }
 //                    else {
 //                        //todo audio increase here
 //                    }
+                    
+                    if (!auTh.isRunning()) {
+                        shouldGenerate = true;
+                        auTh.triggerPlayback();
+                    }
                 });
             }
         });
