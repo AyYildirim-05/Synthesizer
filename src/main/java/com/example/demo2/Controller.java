@@ -5,6 +5,7 @@ import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Slider;
@@ -31,12 +32,18 @@ public class Controller {
     @FXML
     private MenuButton functionChooser1, functionChooser2, functionChooser3;
     @FXML
-    private Slider tone1, tone2, tone3, volume1, volume2, volume3;
+    private Slider tone1, tone2, tone3, volume1, volume2, volume3, playSpeed;
     @FXML
     private Canvas waveformCanvas;
+    @FXML
+    private Button recordButton, exportButton;
     private boolean shouldGenerate;
     private int wavePos;
     private final int NORMALIZER = 6;
+
+
+
+    private double speedFactor = 1;
 
 
     @FXML
@@ -55,6 +62,8 @@ public class Controller {
         sliderSetUp(volume1,1);
         sliderSetUp(volume2,1);
         sliderSetUp(volume3,1);
+
+        sliderSetUp(playSpeed,10);
 
         updateSlider(tone1, 0, true);
         updateSlider(tone2, 1, true);
@@ -77,7 +86,7 @@ public class Controller {
                 mixedSample += (generateWaveSample(txt3, oscillatorFrequencies[2], wavePos) * volume3.getValue()) / NORMALIZER;
 
                 s[i] = (short) (Short.MAX_VALUE * mixedSample);
-                wavePos++;
+                wavePos += speedFactor;
             }
             drawWaveform(s);
             return s;
@@ -87,7 +96,15 @@ public class Controller {
         for (int i = Utility.AudioInfo.STARTING_KEY, key = 0; i < (Utility.AudioInfo.KEYS).length * Utility.AudioInfo.KEY_FREQUENCY_INCREMENT + Utility.AudioInfo.STARTING_KEY; i += Utility.AudioInfo.KEY_FREQUENCY_INCREMENT, ++key) {
             KEY_FREQUENCIES.put(Utility.AudioInfo.KEYS[key], Utility.Math.getKeyFrequency(i));
         }
+        playSpeed.valueProperty().addListener((obs, oldValue, newValue) -> {
+            double speedFactor = newValue.doubleValue();
+            System.out.println("Play speed set to: " + speedFactor + "x");
+            setSpeedFactor(speedFactor);
+        });
+        this.auTh = audioThread;
+
     }
+
 
     private double generateWaveSample(String waveformType, double frequency, int wavePosition) {
         double tDivP = (wavePosition / (double) Utility.AudioInfo.SAMPLE_RATE) / (1d / frequency);
@@ -229,22 +246,30 @@ public class Controller {
         GraphicsContext gc = waveformCanvas.getGraphicsContext2D();
         gc.clearRect(0, 0, waveformCanvas.getWidth(), waveformCanvas.getHeight()); // Clear previous waveform
 
-        gc.setStroke(javafx.scene.paint.Color.BLACK);  // Set the color for the waveform
-        gc.setLineWidth(1);  // Set the line width for the waveform drawing
+        gc.setStroke(javafx.scene.paint.Color.BLACK);
+        gc.setLineWidth(1);
 
         double centerY = waveformCanvas.getHeight() / 2;
-        double scale = waveformCanvas.getHeight() / 2.0;  // Scale to fit the canvas height
+        double scale = waveformCanvas.getHeight() / 2.0;
 
         // Loop through the audio buffer and plot the waveform
         for (int i = 0; i < audioBuffer.length - 1; i++) {
+            // calculates the first x point
             double x1 = i * (waveformCanvas.getWidth() / (double) audioBuffer.length);
+            // calculates the first y point
             double y1 = centerY - (audioBuffer[i] / (double) Short.MAX_VALUE) * scale;
+            // calculates the second x point
             double x2 = (i + 1) * (waveformCanvas.getWidth() / (double) audioBuffer.length);
+            // calculates the second y point
             double y2 = centerY - (audioBuffer[i + 1] / (double) Short.MAX_VALUE) * scale;
 
-            gc.strokeLine(x1, y1, x2, y2);  // Draw the line between the points
+            // connects the 2 points
+            gc.strokeLine(x1, y1, x2, y2);
         }
     }
 
+    public void setSpeedFactor(double speedFactor) {
+        this.speedFactor = speedFactor;
+    }
 }
 
