@@ -37,6 +37,9 @@ public class Controller {
     private int wavePos;
     private final int NORMALIZER = 6;
 
+    private int wavetableStepSize;
+    private int wavetableIndex;
+
 
     @FXML
     public void initialize() {
