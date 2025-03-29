@@ -25,6 +25,7 @@
                                         <MenuItem text="Square" />
                                         <MenuItem text="Saw" />
                                         <MenuItem text="Triangle" />
+                                        <MenuItem text="Noise" />
                                     </items>
                                 </MenuButton>
                                 <VBox fx:id="parameterChooser1" prefHeight="200.0" prefWidth="100.0">
@@ -46,6 +47,7 @@
                                         <MenuItem text="Square" />
                                         <MenuItem text="Saw" />
                                         <MenuItem text="Triangle" />
+                                        <MenuItem text="Noise" />
                                     </items>
                                 </MenuButton>
                                 <VBox fx:id="parameterChooser2" prefHeight="200.0" prefWidth="100.0">
@@ -67,6 +69,7 @@
                                         <MenuItem text="Square" />
                                         <MenuItem text="Saw" />
                                         <MenuItem text="Triangle" />
+                                        <MenuItem text="Noise" />
                                     </items>
                                 </MenuButton>
                                 <VBox fx:id="parameterChooser3" prefHeight="200.0" prefWidth="100.0">

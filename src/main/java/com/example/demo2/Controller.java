@@ -11,13 +11,15 @@ import javafx.stage.Stage;
 
 import java.util.HashMap;
 import java.util.Map;
-
+import java.util.Random;
 
 
 public class Controller {
     private AudioThread auTh;
     private Scene tempScene;
     private Stage tempStage;
+
+    Random random = new Random();
 
     private final Map<MenuButton, String> waveformSelection = new HashMap<>();
     public static final HashMap<Character, Double> KEY_FREQUENCIES = new HashMap<>();
@@ -33,8 +35,6 @@ public class Controller {
     private Canvas waveformCanvas;
     private boolean shouldGenerate;
     private int wavePos;
-    private Utility.Waveform waveform = Utility.Waveform.Sine;
-
     private final int NORMALIZER = 6;
 
 
@@ -99,8 +99,10 @@ public class Controller {
                 return 2d * (tDivP - Math.floor(0.5 + tDivP));
             case "Triangle":
                 return 2d * Math.abs(2d * (tDivP - Math.floor(0.5 + tDivP))) - 1;
+            case "Noise":
+                return random.nextDouble();
             default:
-                throw new RuntimeException("Oscillator is set to unkown waveform");
+                throw new RuntimeException("Oscillator is set to unknown waveform");
         }
     }
 
@@ -150,7 +152,7 @@ public class Controller {
 //                    else {
 //                        //todo audio increase here
 //                    }
-                    
+
                     if (!auTh.isRunning()) {
                         shouldGenerate = true;
                         auTh.triggerPlayback();
@@ -184,8 +186,6 @@ public class Controller {
             slider.setValue(0);
         }
     }
-
-
 
     private void setupMenu(MenuButton menuButton) {
         for (MenuItem item : menuButton.getItems()) {

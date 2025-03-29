@@ -42,8 +42,8 @@ public class Utility {
         public static final char[] KEYS = "zxcvbnm,./asdfghjkl;'qwertyuiop[]#".toCharArray();
     }
 
-    public enum Waveform {
-        Sine, Square, Saw, Triangle;
+    public enum WaveTable {
+        Sine, Square, Saw, Triangle, Noise;
 
         static final int SIZE = 8192;
 
@@ -51,7 +51,7 @@ public class Utility {
 
 
         static {
-            final double FUND_FREQ = 1/(SIZE / (double) Utility.AudioInfo.SAMPLE_RATE); // freq of each wave to produce a complete wave of the desired size
+            final double FUND_FREQ = 1/(SIZE / (double) Utility.AudioInfo.SAMPLE_RATE);
             for (int i = 0; i < SIZE; i++) {
                 double t = i / (double) Utility.AudioInfo.SAMPLE_RATE;
                 double tDivP = (1d / FUND_FREQ);
@@ -59,6 +59,7 @@ public class Utility {
                 Square.samples[i] = java.lang.Math.signum(Sine.samples[i]);
                 Saw.samples[i] = (float) (2d * (tDivP - java.lang.Math.floor(0.5 + tDivP)));
                 Triangle.samples[i] = (float) (2d * java.lang.Math.abs(Saw.samples[i]) - 1d);
+                Noise.samples[i] = (float) (java.lang.Math.random() * 2 - 1);
             }
         }
 
