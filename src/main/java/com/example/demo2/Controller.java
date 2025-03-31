@@ -86,7 +86,8 @@ public class Controller {
                 mixedSample += (generateWaveSample(txt3, oscillatorFrequencies[2], wavePos) * volume3.getValue()) / NORMALIZER;
 
                 s[i] = (short) (Short.MAX_VALUE * mixedSample);
-                wavePos += speedFactor;
+                wavePos += (int) speedFactor;
+                setSpeedFactor(1);
             }
             drawWaveform(s);
             return s;
@@ -193,15 +194,17 @@ public class Controller {
     private void sliderSetUp(Slider slider, int border) {
         slider.setMax(border);
         if (border == 1) {
-            slider.setValue(1);
+            slider.setValue(border);
             slider.setMin(0);
+        } else if (border == 10) {
+            slider.setValue(border);
+            slider.setMin(1);
         } else {
             slider.setValue(0);
             slider.setMin(-border);
         }
         slider.setShowTickMarks(true);
         slider.setShowTickLabels(true);
-
     }
 
     private void setupMenu(MenuButton menuButton) {
