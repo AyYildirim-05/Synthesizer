@@ -86,8 +86,7 @@ public class Controller {
                 mixedSample += (generateWaveSample(txt3, oscillatorFrequencies[2], wavePos) * volume3.getValue()) / NORMALIZER;
 
                 s[i] = (short) (Short.MAX_VALUE * mixedSample);
-                wavePos += (int) speedFactor;
-                setSpeedFactor(1);
+                wavePos += (int) (speedFactor * (Utility.AudioInfo.SAMPLE_RATE / 44100.0));
             }
             drawWaveform(s);
             return s;
@@ -197,7 +196,7 @@ public class Controller {
             slider.setValue(border);
             slider.setMin(0);
         } else if (border == 10) {
-            slider.setValue(border);
+            slider.setValue(1);
             slider.setMin(1);
         } else {
             slider.setValue(0);
