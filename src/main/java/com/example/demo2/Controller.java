@@ -52,9 +52,9 @@ public class Controller {
         setupMenu(functionChooser2);
         setupMenu(functionChooser3);
 
-        setDefaultMenuSelection(functionChooser1, "Sine");
-        setDefaultMenuSelection(functionChooser2, "Sine");
-        setDefaultMenuSelection(functionChooser3, "Sine");
+        setDefaultMenuSelection(functionChooser1);
+        setDefaultMenuSelection(functionChooser2);
+        setDefaultMenuSelection(functionChooser3);
 
         sliderSetUp(tone1,2);
         sliderSetUp(tone2,2);
@@ -78,29 +78,75 @@ public class Controller {
                 return null;
             }
             short[] s = new short[AudioThread.BUFFER_SIZE];
+
+            boolean activeOscillator1 = volume1.getValue() > 0 && tone1.getValue() != 0;
+            boolean activeOscillator2 = volume2.getValue() > 0 && tone2.getValue() != 0;
+            boolean activeOscillator3 = volume3.getValue() > 0 && tone3.getValue() != 0;
+
+
+            if (!activeOscillator1 && !activeOscillator2 && !activeOscillator3) {
+                shouldGenerate = false;
+                return null;
+            }
+
             for (int i = 0; i < AudioThread.BUFFER_SIZE; i++) {
                 double mixedSample = 0;
 
-                mixedSample += (generateWaveSample(txt1, oscillatorFrequencies[0], wavePos) * volume1.getValue()) / NORMALIZER;
-                mixedSample += (generateWaveSample(txt2, oscillatorFrequencies[1], wavePos) * volume2.getValue()) / NORMALIZER;
-                mixedSample += (generateWaveSample(txt3, oscillatorFrequencies[2], wavePos) * volume3.getValue()) / NORMALIZER;
+                if (activeOscillator1) {
+                    mixedSample += (generateWaveSample(txt1, oscillatorFrequencies[0], wavePos) * volume1.getValue()) / NORMALIZER;
+                }
+                if (activeOscillator2) {
+                    mixedSample += (generateWaveSample(txt2, oscillatorFrequencies[1], wavePos) * volume2.getValue()) / NORMALIZER;
+                }
+
+                if (activeOscillator3) {
+                    mixedSample += (generateWaveSample(txt3, oscillatorFrequencies[2], wavePos) * volume3.getValue()) / NORMALIZER;
+                }
 
                 s[i] = (short) (Short.MAX_VALUE * mixedSample);
-                wavePos += (int) (speedFactor * (Utility.AudioInfo.SAMPLE_RATE / 44100.0));
+                wavePos += (int) (speedFactor);
             }
             drawWaveform(s);
             return s;
         });
+        /** interesting test idea
+         * final AudioThread audioThread = new AudioThread(() -> {
+         *     if (!shouldGenerate) {
+         *         return null;
+         *     }
+         *     short[] s = new short[AudioThread.BUFFER_SIZE];
+         *
+         *     // Independent phases
+         *     int wavePos1 = wavePos;
+         *     int wavePos2 = wavePos + 100; // offset phase
+         *     int wavePos3 = wavePos + 200;
+         *
+         *     for (int i = 0; i < AudioThread.BUFFER_SIZE; i++) {
+         *         double mixedSample = 0;
+         *
+         *         mixedSample += (generateWaveSample(txt1, oscillatorFrequencies[0], wavePos1) * volume1.getValue());
+         *         mixedSample += (generateWaveSample(txt2, oscillatorFrequencies[1], wavePos2) * volume2.getValue());
+         *         mixedSample += (generateWaveSample(txt3, oscillatorFrequencies[2], wavePos3) * volume3.getValue());
+         *
+         *         mixedSample = Math.tanh(mixedSample / NORMALIZER);
+         *
+         *         s[i] = (short) (Short.MAX_VALUE * mixedSample);
+         *
+         *         wavePos1 += (int) speedFactor;
+         *         wavePos2 += (int) speedFactor;
+         *         wavePos3 += (int) speedFactor;
+         *     }
+         *     wavePos += (int) speedFactor;
+         *     drawWaveform(s);
+         *     return s;
+         * });
+         */
         this.auTh = audioThread;
 
         for (int i = Utility.AudioInfo.STARTING_KEY, key = 0; i < (Utility.AudioInfo.KEYS).length * Utility.AudioInfo.KEY_FREQUENCY_INCREMENT + Utility.AudioInfo.STARTING_KEY; i += Utility.AudioInfo.KEY_FREQUENCY_INCREMENT, ++key) {
             KEY_FREQUENCIES.put(Utility.AudioInfo.KEYS[key], Utility.Math.getKeyFrequency(i));
         }
-        playSpeed.valueProperty().addListener((obs, oldValue, newValue) -> {
-            double speedFactor = newValue.doubleValue();
-            System.out.println("Play speed set to: " + speedFactor + "x");
-            setSpeedFactor(speedFactor);
-        });
+        playSpeed.valueProperty().addListener((obs, oldValue, newValue) -> setSpeedFactor(newValue.doubleValue()));
         this.auTh = audioThread;
 
     }
@@ -109,20 +155,17 @@ public class Controller {
     private double generateWaveSample(String waveformType, double frequency, int wavePosition) {
         double tDivP = (wavePosition / (double) Utility.AudioInfo.SAMPLE_RATE) / (1d / frequency);
 
-        switch (waveformType) {
-            case "Sine":
-                return Math.sin(Utility.Math.frequencyToAngularFrequency(frequency) * wavePosition / Utility.AudioInfo.SAMPLE_RATE);
-            case "Square":
-                return Math.signum(Math.sin(Utility.Math.frequencyToAngularFrequency(frequency) * wavePosition / Utility.AudioInfo.SAMPLE_RATE));
-            case "Saw":
-                return 2d * (tDivP - Math.floor(0.5 + tDivP));
-            case "Triangle":
-                return 2d * Math.abs(2d * (tDivP - Math.floor(0.5 + tDivP))) - 1;
-            case "Noise":
-                return random.nextDouble() * 2 - 1;
-            default:
-                throw new RuntimeException("Oscillator is set to unknown waveform");
-        }
+        final double a = 2d * (tDivP - Math.floor(0.5 + tDivP));
+        return switch (waveformType) {
+            case "Sine" ->
+                    Math.sin(Utility.Math.frequencyToAngularFrequency(frequency) * wavePosition / Utility.AudioInfo.SAMPLE_RATE);
+            case "Square" ->
+                    Math.signum(Math.sin(Utility.Math.frequencyToAngularFrequency(frequency) * wavePosition / Utility.AudioInfo.SAMPLE_RATE));
+            case "Saw" -> a;
+            case "Triangle" -> 2d * Math.abs(a) - 1;
+            case "Noise" -> random.nextDouble() * 2 - 1;
+            default -> throw new RuntimeException("Oscillator is set to unknown waveform");
+        };
     }
 
 
@@ -141,8 +184,13 @@ public class Controller {
                     oscillatorFrequencies[0] = Utility.Math.offsetTone(frequency, tone1.getValue());
                     oscillatorFrequencies[1] = Utility.Math.offsetTone(frequency, tone2.getValue());
                     oscillatorFrequencies[2] = Utility.Math.offsetTone(frequency, tone3.getValue());
-                    System.out.println("initial" + frequency);
 
+                    if (tone1.getValue() == 0 && tone2.getValue() == 0 && tone3.getValue() == 0) {
+                        return;
+                    }
+                    if (volume1.getValue() == 0 && volume2.getValue() == 0 && volume3.getValue() == 0) {
+                        return;
+                    }
                     shouldGenerate = true;
                     auTh.triggerPlayback();
                 }
@@ -168,7 +216,9 @@ public class Controller {
                         oscillatorFrequencies[index] = Utility.Math.offsetTone(frequency, newValue.doubleValue());
                     }
 
-                    if (!auTh.isRunning()) {
+                    if (!auTh.isRunning() && (
+                            volume1.getValue() > 0 || volume2.getValue() > 0 || volume3.getValue() > 0
+                    )) {
                         shouldGenerate = true;
                         auTh.triggerPlayback();
                     }
@@ -194,13 +244,16 @@ public class Controller {
         slider.setMax(border);
         if (border == 1) {
             slider.setValue(border);
+            slider.setMax(border);
             slider.setMin(0);
         } else if (border == 10) {
             slider.setValue(1);
             slider.setMin(1);
+            slider.setMax(border);
         } else {
             slider.setValue(0);
             slider.setMin(-border);
+            slider.setMax(border);
         }
         slider.setShowTickMarks(true);
         slider.setShowTickLabels(true);
@@ -223,9 +276,9 @@ public class Controller {
         }
     }
 
-    private void setDefaultMenuSelection(MenuButton menuButton, String defaultText) {
+    private void setDefaultMenuSelection(MenuButton menuButton) {
         for (MenuItem item : menuButton.getItems()) {
-            if (item.getText().equals(defaultText)) {
+            if (item.getText().equals("Sine")) {
                 menuButton.setText(item.getText());
                 break;
             }

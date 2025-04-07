@@ -41,7 +41,7 @@
                         </HBox>
                         <HBox fx:id="hbox_WAVE2" prefHeight="100.0" prefWidth="350.0" spacing="10">
                             <children>
-                                <Label fx:id="label2" prefHeight="17.0" prefWidth="97.0" text="Waveform 1:" />
+                                <Label fx:id="label2" prefHeight="17.0" prefWidth="97.0" text="Waveform 2:" />
                                 <MenuButton fx:id="functionChooser2" text="Select Waveform">
                                     <items>
                                         <MenuItem text="Sine" />
@@ -63,7 +63,7 @@
                         </HBox>
                         <HBox fx:id="hbox_WAVE3" prefHeight="100.0" prefWidth="350.0" spacing="10">
                             <children>
-                                <Label fx:id="label3" prefHeight="17.0" prefWidth="97.0" text="Waveform 1:" />
+                                <Label fx:id="label3" prefHeight="17.0" prefWidth="97.0" text="Waveform 3:" />
                                 <MenuButton fx:id="functionChooser3" text="Select Waveform">
                                     <items>
                                         <MenuItem text="Sine" />
