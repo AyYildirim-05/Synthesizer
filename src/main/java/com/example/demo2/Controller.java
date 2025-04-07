@@ -206,7 +206,6 @@ public class Controller {
 
     private void updateSlider(Slider slider, int index, boolean isToneSlider) {
         slider.valueProperty().addListener((obs, oldValue, newValue) -> {
-            System.out.println("Slider " + index + " moved to: " + newValue.doubleValue());
 
             if (isToneSlider && tempScene != null) {
                 tempScene.setOnKeyPressed(event -> {
@@ -271,7 +270,6 @@ public class Controller {
                 } else if (menuButton == functionChooser3) {
                     txt3 = item.getText();
                 }
-                System.out.println(txt1 + " . " + txt2 + " . " + txt3 + " . ");
             });
         }
     }
@@ -287,13 +285,11 @@ public class Controller {
 
     public void setScene(Scene scene) {
         this.tempScene = scene;
-        System.out.println("temp sce:" + tempScene);
         setupKeyboardListeners();
     }
 
     public void setStage(Stage stage) {
         this.tempStage = stage;
-        System.out.println("temp sta:" + tempStage);
         closeApplication();
     }
 
